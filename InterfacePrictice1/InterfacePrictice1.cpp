@@ -1,4 +1,8 @@
-﻿#include <iostream>
+﻿// InterfacePrictice1.cpp : Этот файл содержит функцию "main". Здесь начинается и заканчивается выполнение программы.
+//
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <iostream>
 #include <fstream>
 #include <string>
 #include <regex>
@@ -99,7 +103,7 @@ vector<Shape*> parseFile(const string& filename) {
     }
 
     while (getline(file, line)) {
-
+        // Пропускаем пустые строки
         if (line.empty()) continue;
 
         Point point(0, 0);
@@ -137,21 +141,10 @@ void printShapes(const vector<Shape*>& shapes) {
     }
 }
 
-void printGist(const vector<Shape*>& shapes) {
-    string points = "", lines = "", circles = "";
-    for (const auto& shape : shapes) {
-        if (dynamic_cast<Point*>(shape)) points+="*";
-        else if (dynamic_cast<Line*>(shape)) lines += "*";
-        else if (dynamic_cast<Circle*>(shape)) circles += "*";
-    }
-    cout << "Точек: " << points << endl;
-    cout << "Линий: " << lines << endl;
-    cout << "Окружностей: " << circles << endl;
-}
-
 void countShapes(const vector<Shape*>& shapes) {
     cout << "Количество фигур в файле: " << shapes.size() << endl;
 
+    // Дополнительная статистика по типам фигур
     int points = 0, lines = 0, circles = 0;
     for (const auto& shape : shapes) {
         if (dynamic_cast<Point*>(shape)) points++;
@@ -179,9 +172,8 @@ int main()
     cxxopts::Options options("test", "Программа для работы с геометрическими фигурами");
 
     options.add_options()
-        ("o,oper", "Операция (print, count или gist)", cxxopts::value<std::string>())
+        ("o,oper", "Операция (print или count)", cxxopts::value<std::string>())
         ("f,file", "Файл с объектами", cxxopts::value<string>())
-        ("g,gist", "Вывод гистограммы")
         ("h,help", "Вывод справки")
         ;
 
@@ -189,8 +181,6 @@ int main()
 
     std::cout << options.help() << std::endl;
     std::cout << "\nВведите команду: ";
-
-    std::getline(std::cin, commandLine);
 
     vector<string> tokens;
     string token;
@@ -215,35 +205,27 @@ int main()
         }
 
         if (!result.count("file") || !result.count("oper")) {
-            std::cerr << "Ошибка: необходимо указать оба обязательных аргумента --file и --oper" << std::endl;
+            std::cerr << "Ошибка: необходимо указать оба обязательных аргумента" << std::endl;
             std::cout << options.help() << std::endl;
             return 1;
         }
 
         std::string filename = result["file"].as<std::string>();
         std::string operation = result["oper"].as<std::string>();
-        bool showGist = result.count("gist");
 
-        if (operation != "print" && operation != "count" && operation != "gist") {
+        if (operation != "print" && operation != "count") {
             std::cerr << "Ошибка: недопустимая операция '" << operation << "'" << std::endl;
-            std::cout << "Допустимые операции: print, count, gist" << std::endl;
+            std::cout << "Допустимые операции: print, count" << std::endl;
             return 1;
         }
 
         vector<Shape*> shapes = parseFile(filename);
-
-        if (showGist) {
-            printGist(shapes);
-        }
 
         if (operation == "print") {
             printShapes(shapes);
         }
         else if (operation == "count") {
             countShapes(shapes);
-        }
-        else if (operation == "gist" && !showGist) {
-            printGist(shapes);
         }
 
         cleanupShapes(shapes);
